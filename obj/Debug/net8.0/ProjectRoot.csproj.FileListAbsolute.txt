@@ -170,3 +170,4 @@ C:\dev\ProjectRoot\obj\Debug\net8.0\refint\ProjectRoot.dll
 C:\dev\ProjectRoot\obj\Debug\net8.0\ProjectRoot.pdb
 C:\dev\ProjectRoot\obj\Debug\net8.0\ProjectRoot.genruntimeconfig.cache
 C:\dev\ProjectRoot\obj\Debug\net8.0\ref\ProjectRoot.dll
+C:\dev\ProjectRoot\obj\Debug\net8.0\ProjectRoot.sourcelink.json

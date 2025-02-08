@@ -8,7 +8,7 @@ using System.Security.Cryptography;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Adiciona os serviços
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -18,48 +18,54 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Configuração da chave de token JWT
-var key = builder.Configuration["AppSettings:Token"]; // Pega a chave do arquivo appsettings.json
+var key = builder.Configuration["AppSettings:Token"];
 
 // Verifique se a chave está presente, caso contrário, use uma chave padrão
 if (string.IsNullOrEmpty(key) || Encoding.UTF8.GetByteCount(key) < 32)
 {
-    key = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)); // Gera uma chave aleatória de 32 bytes
+    key = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
 }
 
 // Registra o TokenService (com a chave)
 builder.Services.AddSingleton(new TokenService(key));
 
-// Configuração da autenticação JWT (adicionando ao pipeline de autenticação)
+// Configuração da autenticação JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.RequireHttpsMetadata = false;  // Para facilitar testes locais com HTTP
-        options.SaveToken = true;  // Salva o token no contexto de autenticação
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = false,  // Não valida o emissor do token
-            ValidateAudience = false,  // Não valida o público do token
-            ValidateLifetime = true,  // Valida a expiração do token
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key)) // A chave para validar o token
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key))
         };
     });
 
-// Constrói o app
+
 var app = builder.Build();
 
-// Configurações do pipeline de middleware
+// Executar as migrations automaticamente
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.Migrate();
+}
+
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();  // Habilita o Swagger apenas em ambiente de desenvolvimento
-    app.UseSwaggerUI();  // Interface do Swagger para facilitar a documentação
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
 
-// Adiciona a autenticação ao pipeline
-app.UseAuthentication();  // Habilita a autenticação no pipeline
-app.UseAuthorization();   // Habilita a autorização no pipeline
 
-app.MapControllers();  // Mapeia os controllers da API
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.Run();  // Inicia o servidor
+app.MapControllers();
+
+app.Run();

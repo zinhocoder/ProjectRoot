@@ -28,7 +28,7 @@
             var user = new User
             {
                 Username = request.Username,
-                PasswordHash = request.Password // Senha sendo armazenada como texto puro ⚠️
+                PasswordHash = request.Password 
             };
 
             _context.Users.Add(user);
