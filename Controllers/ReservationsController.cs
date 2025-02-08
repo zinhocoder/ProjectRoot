@@ -1,4 +1,4 @@
-﻿namespace ProjectRoot.Controllers
+namespace ProjectRoot.Controllers
 {
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
@@ -20,6 +20,7 @@
             _context = context;
         }
 
+        
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Reservation>>> GetReservations([FromQuery] DateTime? date)
         {
@@ -29,6 +30,24 @@
                 query = query.Where(r => r.CheckIn.Date == date.Value.Date);
             }
             return await query.ToListAsync();
+        }
+
+        
+        [HttpPost]
+        public async Task<ActionResult<Reservation>> PostReservation([FromBody] Reservation reservation)
+        {
+            
+            if (reservation == null)
+            {
+                return BadRequest("Reserva inválida.");
+            }
+
+            
+            _context.Reservations.Add(reservation);
+            await _context.SaveChangesAsync();
+
+            
+            return CreatedAtAction(nameof(GetReservations), new { id = reservation.Id }, reservation);
         }
     }
 }
